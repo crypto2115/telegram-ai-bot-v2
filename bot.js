@@ -1,6 +1,7 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const { GoogleGenAI } = require('@google/generative-ai');
+// እዚህ ላይ ስህተቱ ሙሉ በሙሉ ተስተካክሏል (GoogleGenerativeAI ተብሏል)
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // ============================================
 // INITIALIZATION
@@ -9,8 +10,8 @@ const { GoogleGenAI } = require('@google/generative-ai');
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
-// Gemini AI ማዋቀር
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// የጌሚኒ ኤአይ ማዋቀሪያ መስመር
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = ai.getGenerativeModel({ 
   model: 'gemini-2.5-flash',
   systemInstruction: 'You are a helpful assistant. Reply in Amharic when asked in Amharic. Be friendly and concise.'
