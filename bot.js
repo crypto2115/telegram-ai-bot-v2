@@ -159,4 +159,51 @@ bot.on('message', async (msg) => {
     // የአይ መልስን ወደ ታሪክ መጨመር
     conversations[chatId].push({
       role: 'model',
-      parts:
+      parts: [{ text: aiMessage }]
+    });
+
+    console.log(`🤖 Response sent (${aiMessage.length} chars)`);
+
+    // ረጅም መልዕክት ከሆነ ከፋፍሎ መላክ (Max 4096)
+    if (aiMessage.length > 4096) {
+      const chunks = aiMessage.match(/[\s\S]{1,4096}/g);
+      for (const chunk of chunks) {
+        await bot.sendMessage(chatId, chunk);
+      }
+    } else {
+      bot.sendMessage(chatId, aiMessage);
+    }
+
+  } catch (error) {
+    console.error('❌ Error:', error.message);
+    
+    let errorMessage = '❌ ይቅርታ፣ ስህተት ተከስቷል!';
+    if (error.message.includes('API_KEY')) {
+      errorMessage = '❌ የ Gemini API ቁልፍ (API Key) ስህተት አለ! እባክዎ .env ወይም Railway Variables ላይ ያረጋግጡ።';
+    } else if (error.code === 'ENOTFOUND' || error.message.includes('fetch')) {
+      errorMessage = '❌ የኢንተርኔት ግንኙነት ችግር አለ! እባክዎ ኮኔክሽንዎን ይመልከቱ።';
+    }
+    
+    bot.sendMessage(chatId, errorMessage);
+  }
+});
+
+// ============================================
+// BOT STARTUP
+// ============================================
+
+console.log('');
+console.log('═════════════════════════════════════');
+console.log('🤖 Telegram Gemini AI Bot ስራ ተጀመረ!');
+console.log('═════════════════════════════════════');
+console.log('📊 Status: Online');
+console.log('🔗 Connection: Polling mode');
+console.log('💬 Ready for messages...');
+console.log('⏹️  Stop: Ctrl + C');
+console.log('═════════════════════════════════════');
+console.log('');
+
+process.on('SIGINT', () => {
+  console.log('\n🛑 Bot shutting down...');
+  process.exit(0);
+});
