@@ -1,6 +1,6 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenAI } = require('@google/generative-ai');
 
 // ============================================
 // INITIALIZATION
@@ -9,8 +9,11 @@ const Anthropic = require('@anthropic-ai/sdk');
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+// Gemini AI ማዋቀር
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const model = ai.getGenerativeModel({ 
+  model: 'gemini-2.5-flash',
+  systemInstruction: 'You are a helpful assistant. Reply in Amharic when asked in Amharic. Be friendly and concise.'
 });
 
 const conversations = {};
@@ -24,20 +27,20 @@ bot.onText(/\/start/, (msg) => {
   conversations[chatId] = [];
   
   const welcomeMessage = 
-    '👋 ወደ AI Chatbot እንኖት!\n\n' +
-    '🤖 Claude AI ጋር ተነጋገር\n\n' +
-    '📝 ምሳሌ ጥያቄዎች:\n' +
-    '• "ሰላም! ምን ስም?"\n' +
-    '• "2 + 2 ምስብ?"\n' +
-    '• "Python hello world ኮድ"\n' +
-    '• "ጋ recipe ስጡኝ"\n\n' +
-    '📋 Commands:\n' +
-    '/start - ጀምር\n' +
-    '/help - ሕዋስ\n' +
-    '/joke - ዜናታ\n' +
-    '/quote - ምሳሌ\n' +
-    '/clear - ታሪክ ያጸዳ\n\n' +
-    '💬 መቀጠል ይችላሉ!';
+    '👋 ወደ Gemini AI Chatbot እንኳን ደህና መጡ!\n\n' +
+    '🤖 ከ Gemini AI ጋር በቀጥታ ይወያዩ\n\n' +
+    '📝 የምሳሌ ጥያቄዎች:\n' +
+    '• "ሰላም! ስምህ ማን ነው?"\n' +
+    '• "2 + 2 ስንት ይሆናል?"\n' +
+    '• "የ Python hello world ኮድ ጻፍልኝ"\n' +
+    '• "የምግብ አሰራር ዘዴ ስጠኝ"\n\n' +
+    '📋 ትዕዛዞች (Commands):\n' +
+    '/start - ቦቱን ለመጀመር\n' +
+    '/help - እርዳታ ለማግኘት\n' +
+    '/joke - ቀልድ ለመስማት\n' +
+    '/quote - አነቃቂ አባባሎች\n' +
+    '/clear - የንግግር ታሪክ ለማጽዳት\n\n' +
+    '💬 መልዕክትዎን መላክ ይችላሉ!';
   
   bot.sendMessage(chatId, welcomeMessage);
   console.log(`✅ User ${chatId} started bot`);
@@ -50,20 +53,20 @@ bot.onText(/\/start/, (msg) => {
 bot.onText(/\/help/, (msg) => {
   const chatId = msg.chat.id;
   const helpMessage = 
-    '📚 ምሳሌ ጥያቄዎች:\n\n' +
-    '1️⃣ "ሰላም! ምን ስም?"\n' +
-    '   → Greeting\n\n' +
+    '📚 የምሳሌ ጥያቄዎች:\n\n' +
+    '1️⃣ "ሰላም! ስምህ ማን ነው?"\n' +
+    '   → ሰላምታ\n\n' +
     '2️⃣ "10 ÷ 2 = ?"\n' +
-    '   → Math\n\n' +
+    '   → ሂሳብ\n\n' +
     '3️⃣ "Python loop ምሳሌ"\n' +
-    '   → Code\n\n' +
-    '4️⃣ "ጋ recipe ስጡኝ"\n' +
-    '   → Recipe\n\n' +
-    '5️⃣ "አሚ ማረጋገጫ?"\n' +
-    '   → General Q&A\n\n' +
-    '/clear - ታሪክ ያጸዳ\n' +
-    '/joke - ዜናታ\n' +
-    '/quote - ምሳሌ';
+    '   → የኮዲንግ እገዛ\n\n' +
+    '4️⃣ "የኬክ አሰራር ስጡኝ"\n' +
+    '   → የምግብ አዘገጃጀት\n\n' +
+    '5️⃣ "አጠቃላይ እውቀት"\n' +
+    '   → ማንኛውንም ጥያቄ\n\n' +
+    '/clear - ታሪክ ያጸዳል\n' +
+    '/joke - ቀልዶች\n' +
+    '/quote - ጥቅሶች';
   
   bot.sendMessage(chatId, helpMessage);
   console.log(`✅ User ${chatId} requested help`);
@@ -76,9 +79,9 @@ bot.onText(/\/help/, (msg) => {
 bot.onText(/\/joke/, (msg) => {
   const chatId = msg.chat.id;
   const jokes = [
-    '😂 ወይ! ኮምyuter ለምን ደህተ?\nምክንያቱም ኮምyuter አስተሳሰብ ስሌት ነበር!',
-    '😂 ሁለት ተዋና ተነጋገሩ:\n- "አስተሳሰብ ምንድ ነው?"\n- "አታውቅም!"',
-    '😂 ኮምyuter ወደ ወኑ:\n"ዛሬ ጥሩ ቀን ነው!"\nመልስ: "ስሌተ ነው!"'
+    '😂 ኮምፒውተር ለምን ዶክተር ጋር ሄደ?\nምክንያቱም ቫይረስ ስላለበት!',
+    '😂 ሁለት ፕሮግራም አውጪዎች ተገናኝተው:\n- "ትዳር ህይወት እንዴት ነው?"\n- "ጥሩ ነው ግን ዶክመንቴሽን የለውም!"',
+    '😂 አባት ለልጁ: "ፈተና እንዴት ነበር?"\nልጅ: "ጥያቄዎቹ ቀላል ነበሩ መልሶቹ ግን ከበዱኝ!"'
   ];
   const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
   bot.sendMessage(chatId, randomJoke);
@@ -92,10 +95,10 @@ bot.onText(/\/joke/, (msg) => {
 bot.onText(/\/quote/, (msg) => {
   const chatId = msg.chat.id;
   const quotes = [
-    '💡 "በውጣት በማሰብ ሙቅ ንጽህናናል።"',
-    '🎯 "አታስፍር ከሆናችሁ አይሠሩ።"',
-    '🚀 "ሊሆን ይችላሉ ከሆናችሁ ዖኬ።"',
-    '🌟 "ሕይወት ካዮቶችሪ የሚጀምር ነው።"'
+    '💡 "ትልቁ ስኬት መውደቅ ሳይሆን ወድቆ መነሳት ነው።"',
+    '🎯 "አዲስ ነገር ለመጀመር ጎበዝ መሆን አያስፈልግህም፣ ግን ጎበዝ ለመሆን መጀመር አለብህ።"',
+    '🚀 "የወደፊቱን ጊዜ ለመተንበይ የተሻለው መንገድ እራስህ መፍጠር ነው።"',
+    '🌟 "ትናንት አልፏል፣ ነገም ገና ነው፣ ዛሬ ግን ስጦታ ነው።"'
   ];
   const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
   bot.sendMessage(chatId, randomQuote);
@@ -109,7 +112,7 @@ bot.onText(/\/quote/, (msg) => {
 bot.onText(/\/clear/, (msg) => {
   const chatId = msg.chat.id;
   conversations[chatId] = [];
-  bot.sendMessage(chatId, '✅ ታሪክ ታጸደ!\n💬 አዲስ ውይይት ጀመርናል።');
+  bot.sendMessage(chatId, '✅ የንግግር ታሪክዎ ተሰርዟል!\n💬 አዲስ ውይይት መጀመር ይችላሉ።');
   console.log(`🧹 Chat history cleared for user ${chatId}`);
 });
 
@@ -121,8 +124,8 @@ bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text;
 
-  // Skip if it's a command
-  if (userMessage.startsWith('/')) {
+  // ፅሁፍ መሆኑን እና Command አለመሆኑን ማረጋገጥ
+  if (!userMessage || userMessage.startsWith('/')) {
     return;
   }
 
@@ -132,79 +135,28 @@ bot.on('message', async (msg) => {
   }
 
   console.log(`📨 User ${chatId}: ${userMessage}`);
-  bot.sendChatAction(chatId, 'typing');
-
+  
   try {
-    // Add user message
+    bot.sendChatAction(chatId, 'typing');
+
+    // የንግግር ታሪክን ለ Gemini ማዘጋጀት
     conversations[chatId].push({
       role: 'user',
-      content: userMessage,
+      parts: [{ text: userMessage }]
     });
 
-    // Keep last 10 messages
-    const recentMessages = conversations[chatId].slice(-10);
+    // የመጨረሻዎቹን 10 መልዕክቶች ብቻ መያዝ
+    const recentHistory = conversations[chatId].slice(-10);
 
-    // Call Claude API
-    const response = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      system: 'You are a helpful assistant. Reply in Amharic when asked in Amharic. Be friendly and concise.',
-      messages: recentMessages,
+    // Gemini AI በመጥራት Chat መጀመር
+    const chat = model.startChat({
+      history: recentHistory.slice(0, -1)
     });
 
-    const aiMessage = response.content[0].text;
+    const result = await chat.sendMessage(userMessage);
+    const aiMessage = result.response.text();
 
-    // Add response
+    // የአይ መልስን ወደ ታሪክ መጨመር
     conversations[chatId].push({
-      role: 'assistant',
-      content: aiMessage,
-    });
-
-    console.log(`🤖 Response sent (${aiMessage.length} chars)`);
-
-    // Send message (max 4096)
-    if (aiMessage.length > 4096) {
-      const chunks = aiMessage.match(/[\s\S]{1,4096}/g);
-      for (const chunk of chunks) {
-        await bot.sendMessage(chatId, chunk);
-      }
-    } else {
-      bot.sendMessage(chatId, aiMessage);
-    }
-
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    
-    let errorMessage = '❌ ስህተት ተከስተ!';
-    
-    if (error.status === 401) {
-      errorMessage = '❌ API Key Error! Setup ይመልከቱ።';
-    } else if (error.code === 'ENOTFOUND') {
-      errorMessage = '❌ Internet Error! Connection ይመልከቱ።';
-    } else {
-      errorMessage = '❌ ስህተት! እንደገና ሞክር።';
-    }
-    
-    bot.sendMessage(chatId, errorMessage);
-  }
-});
-
-// ============================================
-// BOT STARTUP
-// ============================================
-
-console.log('');
-console.log('═════════════════════════════════════');
-console.log('🤖 Telegram AI Bot ስራ ተጀመረ!');
-console.log('═════════════════════════════════════');
-console.log('📊 Status: Online');
-console.log('🔗 Connection: Polling mode');
-console.log('💬 Ready for messages...');
-console.log('⏹️  Stop: Ctrl + C');
-console.log('═════════════════════════════════════');
-console.log('');
-
-process.on('SIGINT', () => {
-  console.log('\n🛑 Bot shutting down...');
-  process.exit(0);
-});
+      role: 'model',
+      parts:
