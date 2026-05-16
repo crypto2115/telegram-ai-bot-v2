@@ -1,0 +1,21 @@
+{
+  "name": "telegram-ai-bot",
+  "version": "1.0.0",
+  "description": "Telegram AI Bot with Claude",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "node bot.js"
+  },
+  "keywords": ["telegram", "bot", "claude", "ai"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "@anthropic-ai/sdk": "^0.9.1",
+    "node-telegram-bot-api": "^0.60.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
